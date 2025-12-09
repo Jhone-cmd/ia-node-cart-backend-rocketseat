@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { CatalogModule } from './catalog/catalog.module';
 
 @Module({
-  imports: [CatalogModule],
+  imports: [CatalogModule, ConfigModule.forRoot({ isGlobal: true })],
   controllers: [],
   providers: [],
 })
