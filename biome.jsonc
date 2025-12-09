@@ -22,7 +22,11 @@
     "enabled": true,
     "rules": {
       "style": {
-        "useImportType": "off"
+        "useImportType": "off",
+        "noParameterProperties": "off"
+      },
+      "suspicious": {
+        "noEmptyBlockStatements": "off"
       },
       "recommended": true,
       "complexity": {
