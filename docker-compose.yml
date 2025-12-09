@@ -1,0 +1,15 @@
+services:
+  postgres:
+    container_name: ia-node-cart
+    image: pgvector/pgvector:pg17
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: docker
+      POSTGRES_PASSWORD: docker
+      POSTGRES_DB: cart
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
