@@ -14,6 +14,8 @@ describe('CatalogController (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+    app.enableShutdownHooks();
+    app.enableCors();
   });
 
   afterEach(async () => {
