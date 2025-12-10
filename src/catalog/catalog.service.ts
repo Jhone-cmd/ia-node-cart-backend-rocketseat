@@ -13,9 +13,16 @@ type Product = {
 export class CatalogService {
   constructor(private readonly postgresService: PostgresService) {}
 
-  async getCatalog() {
+  async getCatalog(search = '') {
+    let query = `SELECT products.id, products.name, products.price, products.embedding, json_build_object('id', stores.id, 'name', stores.name) as store FROM products JOIN stores ON products.store_id = stores.id`;
+
+    if (search) {
+      query += ' WHERE products.name ILIKE $1';
+    }
+
     const result = await this.postgresService.client.query<Product>(
-      `SELECT products.id, products.name, products.price, products.embedding, json_build_object('id', stores.id, 'name',      stores.name) as store FROM products JOIN stores ON products.store_id = stores.id`
+      query,
+      search ? [`%${search}%`] : []
     );
     return result.rows;
   }
