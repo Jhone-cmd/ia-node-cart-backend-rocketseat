@@ -15,7 +15,7 @@ export class CatalogService {
 
   async getCatalog() {
     const result = await this.postgresService.client.query<Product>(
-      'SELECT * FROM products'
+      `SELECT products.id, products.name, products.price, products.embedding, json_build_object('id', stores.id, 'name',      stores.name) as store FROM products JOIN stores ON products.store_id = stores.id`
     );
     return result.rows;
   }

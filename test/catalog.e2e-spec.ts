@@ -22,7 +22,7 @@ describe('CatalogController (e2e)', () => {
     await app.close();
   });
 
-  it('/ (GET)', async () => {
+  it('should be able to fetch all products', async () => {
     const response = await request(app.getHttpServer()).get('/catalog');
 
     expect(response.status).toBe(200);
