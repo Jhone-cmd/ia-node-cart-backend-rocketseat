@@ -24,8 +24,16 @@ describe('CatalogController (e2e)', () => {
 
   it('should be able to fetch all products', async () => {
     const response = await request(app.getHttpServer()).get('/catalog');
-
     expect(response.status).toBe(200);
     expect(response.body).toHaveLength(36);
+    expect(response.body[0].store).toHaveProperty('id');
+  });
+
+  it('should be able to search products by name', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/catalog')
+      .query({ search: 'feijão' });
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveLength(2);
   });
 });
