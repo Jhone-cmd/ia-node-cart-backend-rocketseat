@@ -16,6 +16,10 @@ describe('CatalogController (e2e)', () => {
     await app.init();
   });
 
+  afterEach(async () => {
+    await app.close();
+  });
+
   it('/ (GET)', async () => {
     const response = await request(app.getHttpServer()).get('/catalog');
 
