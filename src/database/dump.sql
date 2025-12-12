@@ -2,6 +2,9 @@ CREATE EXTENSION IF NOT EXISTS vector;
 
 DROP TABLE IF EXISTS stores CASCADE;
 DROP TABLE IF EXISTS products CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS carts CASCADE;
+DROP TABLE IF EXISTS cart_items CASCADE;
 
 CREATE TABLE stores (
     id SERIAL PRIMARY KEY,
@@ -15,6 +18,35 @@ CREATE TABLE products (
     store_id INTEGER REFERENCES stores(id),
     embedding VECTOR(1536) -- Adjust the dimension based on your embedding model
 );
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE carts (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),   
+    store_id INTEGER REFERENCES stores(id),
+    active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+);
+
+CREATE TABLE cart_items (
+    id SERIAL PRIMARY KEY,
+    cart_id INTEGER REFERENCES carts(id),
+    product_id INTEGER REFERENCES products(id),
+    quantity INTEGER NOT NULL DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_cart_product UNIQUE (cart_id, product_id)
+);
+
+-- Usuários
+INSERT INTO users (name, email, password) VALUES
+  ('John Doe', 'johndoe@email.com', '12345678');
 
 -- Lojas
 INSERT INTO stores (name) VALUES
