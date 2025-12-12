@@ -34,9 +34,26 @@ export class CartService {
 
   async getCart(userId: number) {
     const result = await this.postgresService.client.query<Cart>(
-      'SELECT * FROM cart_items WHERE user_id = $1 AND active = true',
+      `SELECT
+        carts.id AS id,
+        json_agg(
+          json_build_object(
+            'id', products.id,
+            'name', products.name,
+            'price', products.price,
+            'quantity', cart_items.quantity
+          )
+        ) as items
+
+      FROM carts
+
+        JOIN cart_items ON carts.id = cart_items.cart_id
+        JOIN products ON cart_items.product_id = products.id
+
+      WHERE user_id = $1 AND active = true
+      GROUP BY carts.id;`,
       [userId]
     );
-    return result.rows ?? null;
+    return result.rows[0] ?? null;
   }
 }
