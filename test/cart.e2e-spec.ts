@@ -28,9 +28,13 @@ describe('CartController (e2e)', () => {
       quantity: 2,
     });
 
+    console.log(response.body);
+
     expect(response.status).toBe(201);
-    expect(response.body).toEqual({
-      message: 'Product added to cart successfully',
-    });
+    expect(response.body).toHaveProperty('id');
+
+    const responseCart = await request(app.getHttpServer()).get('/cart');
+    expect(responseCart.status).toBe(200);
+    expect(responseCart.body.id).toBe(response.body.id);
   });
 });

@@ -22,4 +22,12 @@ export class CartService {
     );
     return result.rows[0];
   }
+
+  async getCart(userId: number) {
+    const result = await this.postgresService.client.query<Cart>(
+      'SELECT * FROM cart_items WHERE user_id = $1 AND active = true',
+      [userId]
+    );
+    return result.rows ?? null;
+  }
 }
