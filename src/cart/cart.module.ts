@@ -8,4 +8,4 @@ import { CartService } from './cart.service';
   controllers: [CartController],
   providers: [CartService, PostgresService],
 })
-export default class CartModule {}
+export class CartModule {}

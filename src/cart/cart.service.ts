@@ -16,11 +16,20 @@ export class CartService {
   constructor(private readonly postgresService: PostgresService) {}
 
   async addToCart(userId: number, productId: number, quantity: number) {
-    const result = await this.postgresService.client.query(
-      'INSERT INTO cart_items (user_id, product_id, quantity) VALUES ($1, $2, $3) RETURNING *',
-      [userId, productId, quantity]
+    const product = await this.postgresService.client.query<{
+      store_id: number;
+    }>('SELECT store_id FROM products WHERE id = $1', [productId]);
+
+    const cart = await this.postgresService.client.query<{ id: number }>(
+      'INSERT INTO carts (user_id, store_id) VALUES ($1, $2) RETURNING id',
+      [userId, product.rows[0].store_id]
     );
-    return result.rows[0];
+
+    await this.postgresService.client.query(
+      'INSERT INTO cart_items (cart_id, product_id, quantity) VALUES ($1, $2, $3) RETURNING *',
+      [cart.rows[0].id, productId, quantity]
+    );
+    return { id: cart.rows[0].id };
   }
 
   async getCart(userId: number) {
