@@ -20,10 +20,12 @@ export class CartService {
       store_id: number;
     }>('SELECT store_id FROM products WHERE id = $1', [productId]);
 
-    const existingCart = await this.postgresService.client.query<Cart>(
-      'SELECT id, store_id FROM carts WHERE user_id = $1 AND active = true',
-      [userId, product.rows[0].store_id]
-    );
+    const existingCart = await this.postgresService.client.query<{
+      id: number;
+      store_id: number;
+    }>('SELECT id, store_id FROM carts WHERE user_id = $1 AND active = true', [
+      userId,
+    ]);
 
     if (
       existingCart.rows.length > 0 &&
