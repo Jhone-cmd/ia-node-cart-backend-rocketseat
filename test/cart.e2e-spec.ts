@@ -80,4 +80,27 @@ describe('CartController (e2e)', () => {
     expect(responseCart.body.items[1].id).toBe(2);
     expect(responseCart.body.items[1].quantity).toBe(4);
   });
+
+  it('should create a new cart if the store is different', async () => {
+    const response = await request(app.getHttpServer()).post('/cart').send({
+      productId: 1,
+      quantity: 2,
+    });
+
+    expect(response.status).toBe(201);
+    expect(response.body).toHaveProperty('id');
+
+    const response2 = await request(app.getHttpServer()).post('/cart').send({
+      productId: 17,
+      quantity: 3,
+    });
+
+    expect(response2.status).toBe(201);
+    expect(response2.body).toHaveProperty('id');
+    expect(response2.body.id).not.toBe(response.body.id);
+
+    const responseCart = await request(app.getHttpServer()).get('/cart/');
+    expect(responseCart.status).toBe(200);
+    expect(responseCart.body.id).toBe(response2.body.id);
+  });
 });
