@@ -70,6 +70,10 @@ export class CartService {
     const result = await this.postgresService.client.query<Cart>(
       `SELECT
         carts.id AS id,
+        carts.user_id AS user_id,
+        carts.created_at AS created_at,
+        carts.store_id AS store_id,
+        carts.active AS active,
         json_agg(
           json_build_object(
             'id', products.id,
@@ -81,8 +85,8 @@ export class CartService {
 
       FROM carts
 
-        JOIN cart_items ON carts.id = cart_items.cart_id
-        JOIN products ON cart_items.product_id = products.id
+        LEFT JOIN cart_items ON carts.id = cart_items.cart_id
+        LEFT JOIN products ON cart_items.product_id = products.id
 
       WHERE user_id = $1 AND active = true
       GROUP BY carts.id;`,
