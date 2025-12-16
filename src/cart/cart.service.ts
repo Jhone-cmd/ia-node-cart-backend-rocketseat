@@ -9,6 +9,12 @@ type Cart = {
   quantity: number;
   active: boolean;
   created_at: Date;
+  items: {
+    id: number;
+    name: string;
+    price: number;
+    quantity: number;
+  }[];
 };
 
 @Injectable()
