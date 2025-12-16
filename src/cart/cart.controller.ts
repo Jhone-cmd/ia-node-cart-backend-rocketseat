@@ -3,7 +3,9 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
+  Put,
 } from '@nestjs/common';
 import { CartService } from './cart.service';
 
@@ -32,5 +34,20 @@ export class CartController {
       throw new BadRequestException('Cart is empty');
     }
     return cart;
+  }
+
+  @Put(':cartId/items/:productId')
+  async updateCartItem(
+    @Body() body: { quantity: number },
+    @Param('productId') productId: string
+  ) {
+    if (!body.quantity || body.quantity <= 0) {
+      throw new BadRequestException('Quantity must be greater than 0');
+    }
+    await this.cartService.updateCartItem(
+      this.userId,
+      Number(productId),
+      body.quantity
+    );
   }
 }
