@@ -9,6 +9,10 @@ type Cart = {
   quantity: number;
   active: boolean;
   created_at: Date;
+  store: {
+    id: number;
+    name: string;
+  };
   items: {
     id: number;
     name: string;
@@ -74,6 +78,10 @@ export class CartService {
         carts.created_at AS created_at,
         carts.store_id AS store_id,
         carts.active AS active,
+        json_build_object(
+          'id', stores.id,
+          'name', stores.name
+        ) as store,
         json_agg(
           json_build_object(
             'id', products.id,
@@ -87,9 +95,10 @@ export class CartService {
 
         LEFT JOIN cart_items ON carts.id = cart_items.cart_id
         LEFT JOIN products ON cart_items.product_id = products.id
+        JOIN stores ON carts.store_id = stores.id
 
       WHERE user_id = $1 AND active = true
-      GROUP BY carts.id;`,
+      GROUP BY carts.id, stores.id;`,
       [userId]
     );
     const hasItems =
@@ -99,6 +108,11 @@ export class CartService {
       ? {
           ...result.rows[0],
           items: hasItems ? result.rows[0].items : [],
+          total:
+            result.rows[0].items?.reduce(
+              (acc, item) => acc + item.price * item.quantity,
+              0
+            ) ?? 0,
         }
       : null;
   }
