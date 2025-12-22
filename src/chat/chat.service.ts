@@ -1,0 +1,14 @@
+import { PostgresService } from '../shared/postgres.service';
+
+export class ChatService {
+  constructor(private readonly postgresService: PostgresService) {}
+
+  async createChatSession(userId: number) {
+    const result = await this.postgresService.client.query<{ id: number }>(
+      'INSERT INTO chat_sessions (user_id) VALUES ($1) RETURNING id',
+      [userId]
+    );
+
+    return result.rows[0];
+  }
+}
