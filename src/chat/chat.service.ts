@@ -11,4 +11,12 @@ export class ChatService {
 
     return result.rows[0];
   }
+
+  async getChatSession(sessionId: number) {
+    const result = await this.postgresService.client.query<{ id: number }>(
+      'SELECT * FROM chat_sessions WHERE id = $1',
+      [sessionId]
+    );
+    return result.rows[0];
+  }
 }
