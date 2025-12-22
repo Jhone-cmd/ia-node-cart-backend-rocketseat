@@ -1,5 +1,7 @@
+import { Injectable } from '@nestjs/common';
 import { PostgresService } from '../shared/postgres.service';
 
+@Injectable()
 export class ChatService {
   constructor(private readonly postgresService: PostgresService) {}
 

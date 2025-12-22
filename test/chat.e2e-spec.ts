@@ -1,0 +1,44 @@
+import { INestApplication } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import request from 'supertest';
+import { App } from 'supertest/types';
+import { AppModule } from '../src/app.module';
+import { PostgresService } from '../src/shared/postgres.service';
+
+describe('ChatController (e2e)', () => {
+  let app: INestApplication<App>;
+  let postgresService: PostgresService;
+  beforeEach(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    await app.init();
+    app.enableShutdownHooks();
+    app.enableCors();
+
+    postgresService = app.get<PostgresService>(PostgresService);
+    await postgresService.client.query(
+      'TRUNCATE TABLE chat_sessions RESTART IDENTITY CASCADE;'
+    );
+  });
+
+  afterEach(async () => {
+    await app.close();
+  });
+
+  it('should create a new chat session', async () => {
+    const response = await request(app.getHttpServer()).post('/chat');
+
+    expect(response.status).toBe(201);
+
+    expect(response.body).toHaveProperty('id');
+    const getResponse = await request(app.getHttpServer()).get(
+      `/chat/${response.body.id}`
+    );
+
+    expect(getResponse.status).toBe(200);
+    expect(getResponse.body).toHaveProperty('id', response.body.id);
+  });
+});
