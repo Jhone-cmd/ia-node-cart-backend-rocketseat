@@ -26,7 +26,11 @@
         "noParameterProperties": "off"
       },
       "suspicious": {
-        "noEmptyBlockStatements": "off"
+        "noEmptyBlockStatements": "off",
+        "useAwait": "off"
+      },
+      "nursery": {
+        "useMaxParams": "off"
       },
       "recommended": true,
       "complexity": {
