@@ -16,9 +16,26 @@ export class ChatService {
 
   async getChatSession(sessionId: number) {
     const result = await this.postgresService.client.query<{ id: number }>(
-      'SELECT * FROM chat_sessions WHERE id = $1',
+      `SELECT 
+      chat_sessions.id, chat_sessions.user_id, chat_sessions.created_at, JSON_AGG(jsonb_build_object(
+        'id', chat_messages.id,
+        'content', chat_messages.content,
+        'sender', chat_messages.sender,
+        'openai_message_id', chat_messages.openai_message_id,
+        'created_at', chat_messages.created_at,
+        'message_type', chat_messages.message_type
+      ) ORDER BY chat_messages.created_at) FILTER(WHERE chat_messages.id IS NOT NULL) AS messages
+      FROM chat_sessions
+      LEFT JOIN chat_messages ON chat_sessions.id = chat_messages.chat_session_id
+      WHERE chat_sessions.id = $1
+      GROUP BY chat_sessions.id, chat_messages.chat_session_id`,
       [sessionId]
     );
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
     return result.rows[0];
   }
 
