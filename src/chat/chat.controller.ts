@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   NotFoundException,
@@ -27,5 +28,14 @@ export class ChatController {
     }
 
     return session;
+  }
+
+  @Post(':sessionId/messages')
+  async addUserMessage(
+    @Param('sessionId') sessionId: number,
+    @Body('content') content: string
+  ) {
+    const message = await this.chatService.addUserMessage(sessionId, content);
+    return message;
   }
 }
