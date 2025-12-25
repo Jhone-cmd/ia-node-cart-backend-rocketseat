@@ -27,7 +27,8 @@
       },
       "suspicious": {
         "noEmptyBlockStatements": "off",
-        "useAwait": "off"
+        "useAwait": "off",
+        "noEvolvingTypes": "off"
       },
       "nursery": {
         "useMaxParams": "off"
