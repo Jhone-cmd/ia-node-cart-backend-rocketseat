@@ -38,7 +38,7 @@ export class LlmService {
   constructor(private readonly configService: ConfigService) {
     this.client = new OpenAI({
       apiKey: this.configService.get<string>('OPENAI_API_KEY'),
-      webhookSecret: this.configService.get<string>('OPENAI_WEBHOOK_SECRET'),
+      webhookSecret: this.configService.get<string>('WEBHOOKS_OPENAI_KEY'),
     });
   }
 
@@ -50,10 +50,7 @@ export class LlmService {
         model: 'gpt-4.1-nano',
         instructions: LlmService.Answer_Message_Prompt,
         input: message,
-
-        text: {
-          format: zodTextFormat(answerMessageSchema, 'answerSchema'),
-        },
+        text: { format: zodTextFormat(answerMessageSchema, 'answerSchema') },
       });
       console.log(
         'LlmService.answerMessage response:',
