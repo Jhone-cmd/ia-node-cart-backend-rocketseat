@@ -44,19 +44,29 @@ export class ChatService {
   }
 
   async addUserMessage(sessionId: number, content: string) {
+    const chatMessages = await this.postgresService.client.query<{
+      openai_message_id: string | null;
+    }>(
+      `SELECT openai_message_id FROM chat_messages WHERE chat_session_id = $1 AND sender = 'assistant' ORDER BY created_at DESC LIMIT 1`,
+      [sessionId]
+    );
+
     const userMessage = await this.addMessageToSession(
       sessionId,
       content,
       'user'
     );
 
-    const llmResponse = await this.llmService.answerMessage(content);
+    const llmResponse = await this.llmService.answerMessage(
+      content,
+      chatMessages.rows[0]?.openai_message_id || null
+    );
 
     if (!llmResponse) {
       throw new BadGatewayException('Failed to get response from LLM service');
     }
 
-    await this.addMessageToSession(
+    const llmMessage = await this.addMessageToSession(
       sessionId,
       llmResponse.message,
       'assistant',
@@ -64,6 +74,19 @@ export class ChatService {
       'text'
     );
 
+    if (llmResponse.action.type === 'suggest_carts') {
+      await this.postgresService.client.query(
+        `INSERT INTO chat_messages_actions (chat_message_id, action_type, payload)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (chat_message_id, action_type) DO NOTHING
+      `,
+        [
+          llmMessage.id,
+          llmResponse.action.type,
+          JSON.stringify(llmResponse.action.payload),
+        ]
+      );
+    }
     return userMessage;
   }
 

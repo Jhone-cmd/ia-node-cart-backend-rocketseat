@@ -4,19 +4,17 @@ import { OpenAI } from 'openai';
 import { zodTextFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
 
+// Schema corrigido para evitar o erro "oneOf"
 const answerMessageSchema = z.object({
   message: z.string(),
-  action: z.discriminatedUnion('type', [
-    z.object({
-      type: z.literal('send_message'),
-    }),
-    z.object({
-      type: z.literal('suggest_carts'),
-      payload: z.object({
+  action: z.object({
+    type: z.enum(['send_message', 'suggest_carts']),
+    payload: z
+      .object({
         input: z.string(),
-      }),
-    }),
-  ]),
+      })
+      .nullable(),
+  }),
 });
 
 type AnswerMessage = z.infer<typeof answerMessageSchema>;

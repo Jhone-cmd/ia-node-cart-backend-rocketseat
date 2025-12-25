@@ -50,7 +50,6 @@ describe('ChatController (e2e)', () => {
     const sessionId = postResponse.body.id as number;
 
     const messageResponse = await request(app.getHttpServer())
-
       .post(`/chat/${sessionId}/messages`)
       .send({ content: 'Hello, world!' });
 
