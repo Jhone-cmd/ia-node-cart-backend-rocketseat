@@ -40,7 +40,17 @@ export class ChatService {
   }
 
   async addUserMessage(sessionId: number, content: string) {
-    return this.addMessageToSession(sessionId, content, 'user');
+    const userMessage = await this.addMessageToSession(sessionId, content, 'user');
+
+    await this.addMessageToSession(
+      sessionId,
+      'Processing your message...',
+      'assistant',
+      'open-ai-dummy-id',
+      'text'
+    );
+
+    return userMessage;
   }
 
   private async addMessageToSession(
