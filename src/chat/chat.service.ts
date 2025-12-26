@@ -1,4 +1,8 @@
-import { BadGatewayException, Injectable } from '@nestjs/common';
+import {
+  BadGatewayException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import { LlmService } from '../shared/llm.service';
 import { PostgresService } from '../shared/postgres.service';
 
@@ -43,7 +47,7 @@ export class ChatService {
   }
 
   async getChatSession(sessionId: number) {
-    const result = await this.postgresService.client.query<{ id: number }>(
+    const result = await this.postgresService.client.query<ChatSession>(
       `SELECT 
       chat_sessions.id, chat_sessions.user_id, chat_sessions.created_at, JSON_AGG(jsonb_build_object(
         'id', chat_messages.id,
@@ -135,14 +139,7 @@ export class ChatService {
     openaiMessageId?: string,
     messageType: 'text' | 'suggest_carts_result' = 'text'
   ) {
-    const result = await this.postgresService.client.query<{
-      id: number;
-      content: string;
-      sender: string;
-      openai_message_id: string | null;
-      created_at: Date;
-      message_type: string;
-    }>(
+    const result = await this.postgresService.client.query<ChatMessage>(
       `INSERT INTO chat_messages 
        (chat_session_id, content, sender, openai_message_id, message_type) 
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
@@ -150,5 +147,34 @@ export class ChatService {
     );
 
     return result.rows[0];
+  }
+
+  async confirmAction(sessionId: number, actionId: number) {
+    const session = await this.postgresService.client.query<ChatSession>(
+      'SELECT * FROM chat_sessions WHERE id = $1',
+      [sessionId]
+    );
+
+    if (session.rows.length === 0) {
+      return null;
+    }
+
+    const result = await this.postgresService.client.query<ChatMessageAction>(
+      'SELECT * FROM chat_messages_actions WHERE id = $1',
+      [actionId]
+    );
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    if (result.rows[0].confirmed_at) {
+      throw new ConflictException('This action has already been confirmed.');
+    }
+
+    await this.postgresService.client.query(
+      'UPDATE chat_messages_actions SET confirmed_at = NOW() WHERE id = $1',
+      [actionId]
+    );
   }
 }
