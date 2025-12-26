@@ -33,6 +33,9 @@
       "nursery": {
         "useMaxParams": "off"
       },
+      "correctness": {
+        "noUnusedVariables": "off"
+      },
       "recommended": true,
       "complexity": {
         "noStaticOnlyClass": "off",

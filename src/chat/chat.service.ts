@@ -2,6 +2,30 @@ import { BadGatewayException, Injectable } from '@nestjs/common';
 import { LlmService } from '../shared/llm.service';
 import { PostgresService } from '../shared/postgres.service';
 
+type ChatSession = {
+  id: number;
+  created_at: Date;
+  user_id: number;
+};
+
+type ChatMessage = {
+  id: number;
+  content: string;
+  sender: 'user' | 'assistant';
+  openai_message_id: string | null;
+  created_at: Date;
+  message_type: 'text' | 'suggest_carts_result';
+};
+
+type ChatMessageAction = {
+  id: number;
+  chat_message_id: number;
+  action_type: string;
+  payload: { input: string };
+  created_at: Date;
+  confirmed_at: Date | null;
+  executed_at: Date | null;
+};
 @Injectable()
 export class ChatService {
   constructor(
