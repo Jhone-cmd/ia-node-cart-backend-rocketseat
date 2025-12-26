@@ -2,6 +2,7 @@ import {
   BadGatewayException,
   ConflictException,
   Injectable,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { LlmService } from '../shared/llm.service';
 import { PostgresService } from '../shared/postgres.service';
@@ -176,5 +177,45 @@ export class ChatService {
       'UPDATE chat_messages_actions SET confirmed_at = NOW() WHERE id = $1',
       [actionId]
     );
+
+    if (result.rows[0].action_type === 'suggest_carts') {
+      const embeddings = await this.llmService.embedInput(
+        result.rows[0].payload.input
+      );
+
+      if (!embeddings) {
+        throw new BadGatewayException('Failed to get embeddings from the LLM');
+      }
+
+      const relevantProductsGroupedByStore =
+        await this.postgresService.client.query<{
+          store_id: number;
+          products: {
+            id: number;
+            name: string;
+            price: number;
+            similarity: number;
+          }[];
+        }>(
+          `SELECT store_id, JSON_AGG(
+          JSON_BUILD_OBJECT(
+            'id', id,
+            'name', name,
+            'price', price,
+            'similarity', p.embedding <=> $1)
+        ) AS products
+        FROM products p
+        WHERE p.embedding <=> $1 < 0.65
+        GROUP BY store_id
+      `,
+          [embeddings.embedding]
+        );
+
+      console.dir(relevantProductsGroupedByStore.rows, { depth: null });
+    } else {
+      throw new InternalServerErrorException(
+        `Action type ${result.rows[0].action_type} is not supported.`
+      );
+    }
   }
 }
