@@ -41,7 +41,8 @@
         "noStaticOnlyClass": "off",
         "noThisInStatic": "off",
         "noForEach": "off",
-        "noUselessConstructor": "off"
+        "noUselessConstructor": "off",
+        "useSimplifiedLogicExpression": "off"
       }
     }
   }

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OpenAI } from 'openai';
 import { zodTextFormat } from 'openai/helpers/zod';
+import { CreateEmbeddingResponse } from 'openai/resources';
 import { z } from 'zod';
 
 // Schema corrigido para evitar o erro "oneOf"
@@ -90,6 +91,58 @@ export class LlmService {
       completion_window: '24h',
       endpoint: '/v1/embeddings',
     });
+  }
+
+  async handleWebhookEvent(rawBody: string, headers: Record<string, string>) {
+    console.log('LlmService.handleWebhookEvent called');
+
+    const event = await this.client.webhooks.unwrap(rawBody, headers);
+
+    if (event.type !== 'batch.completed') {
+      console.warn('Received non-batch event:', event.type);
+      return;
+    }
+
+    console.log('Batch completed event received:', event.data.id);
+    const batch = await this.client.batches.retrieve(event.data.id);
+
+    if (!batch || !batch.output_file_id) {
+      console.error('Batch output file not found:', event.data.id);
+      return;
+    }
+
+    console.log('Batch output file ID:', batch.output_file_id);
+    const outputFile = await this.client.files.content(batch.output_file_id);
+
+    const results = (await outputFile.text())
+      .split('\n')
+      .filter(line => line.trim() !== '')
+      .map(line => {
+        const data = JSON.parse(line) as {
+          custom_id: string;
+          response: {
+            body: CreateEmbeddingResponse;
+          };
+        };
+
+        if (
+          !data.response ||
+          !data.response.body ||
+          !data.response.body.data ||
+          data.response.body.data.length === 0
+        ) {
+          console.warn('Invalid response data:', data);
+          return null;
+        }
+
+        return {
+          productId: data.custom_id,
+          embedding: data.response.body.data[0].embedding,
+        };
+      })
+      .filter(result => result !== null);
+
+    return results;
   }
 
   async answerMessage(
