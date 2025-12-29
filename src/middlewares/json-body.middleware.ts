@@ -1,5 +1,4 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
-
 import * as bodyParser from 'body-parser';
 import type { Request, Response } from 'express';
 
