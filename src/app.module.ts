@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { CartModule } from './cart/cart.module';
 import { CatalogModule } from './catalog/catalog.module';
 import { ChatModule } from './chat/chat.module';
+import { WebhooksController } from './webhooks.controller';
 
 @Module({
   imports: [
@@ -11,7 +12,7 @@ import { ChatModule } from './chat/chat.module';
     ChatModule,
     ConfigModule.forRoot({ isGlobal: true }),
   ],
-  controllers: [],
+  controllers: [WebhooksController],
   providers: [],
 })
 export class AppModule {}
