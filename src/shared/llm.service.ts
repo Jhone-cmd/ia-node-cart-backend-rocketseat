@@ -58,6 +58,40 @@ export class LlmService {
     }
   }
 
+  async batchEmbedProducts(products: { id: number; name: string }[]) {
+    const jsonlFile = products
+      .map(product =>
+        JSON.stringify({
+          custom_id: product.id.toString(),
+          method: 'POST',
+          url: '/v1/embeddings',
+          body: {
+            model: 'text-embedding-3-small',
+            input: product.name,
+          },
+        })
+      )
+      .join('\n');
+
+    const uploadedFile = await this.client.files.create({
+      file: new File([jsonlFile], 'products.jsonl', {
+        type: 'application/jsonl',
+      }),
+      purpose: 'batch',
+    });
+
+    if (!uploadedFile.id) {
+      console.error('Failed to upload file for batch embedding');
+      return null;
+    }
+
+    await this.client.batches.create({
+      input_file_id: uploadedFile.id,
+      completion_window: '24h',
+      endpoint: '/v1/embeddings',
+    });
+  }
+
   async answerMessage(
     message: string,
     previousMessageId: string | null = null
