@@ -218,4 +218,35 @@ export class ChatService {
       );
     }
   }
+
+  private async saveSuggestedCarts(
+    messageId: number,
+    carts: {
+      store_id: number;
+      score: number;
+      products: {
+        id: number;
+      }[];
+    }[]
+  ) {
+    for (const cart of carts) {
+      const cartResult = await this.postgresService.client.query<{
+        id: number;
+      }>(
+        `INSERT INTO carts (user_id, store_id, score, suggested_by_message_id, active)
+         VALUES ($1, $2, $3, $4, FALSE)
+         RETURNING id`,
+        [1, cart.store_id, cart.score, messageId]
+      );
+
+      const cartId = cartResult.rows[0].id;
+      for (const product of cart.products) {
+        await this.postgresService.client.query(
+          `INSERT INTO cart_items (cart_id, product_id, quantity) VALUES ($1, $2, 1)
+           ON CONFLICT (cart_id, product_id) DO UPDATE SET quantity = EXCLUDED.quantity`,
+          [cartId, product.id]
+        );
+      }
+    }
+  }
 }
