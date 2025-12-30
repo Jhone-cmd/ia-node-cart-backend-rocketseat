@@ -3,6 +3,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { LlmService } from '../shared/llm.service';
 import { PostgresService } from '../shared/postgres.service';
@@ -157,7 +158,7 @@ export class ChatService {
     );
 
     if (session.rows.length === 0) {
-      return null;
+      throw new NotFoundException('Chat message action not found');
     }
 
     const result = await this.postgresService.client.query<ChatMessageAction>(
@@ -166,7 +167,7 @@ export class ChatService {
     );
 
     if (result.rows.length === 0) {
-      return null;
+      throw new NotFoundException('Chat message action not found');
     }
 
     if (result.rows[0].confirmed_at) {
@@ -212,6 +213,38 @@ export class ChatService {
         );
 
       console.dir(relevantProductsGroupedByStore.rows, { depth: null });
+
+      if (relevantProductsGroupedByStore.rows.length === 0) {
+        throw new NotFoundException(
+          'No relevant products found for the given input.'
+        );
+      }
+
+      const llmResponse = await this.llmService.suggestCarts(
+        relevantProductsGroupedByStore.rows,
+
+        result.rows[0].payload.input
+      );
+
+      if (!llmResponse || !llmResponse.carts) {
+        throw new BadGatewayException(
+          'Failed to get cart suggestions from the LLM'
+        );
+      }
+      await this.postgresService.client.query(
+        'UPDATE chat_messages_actions SET executed_at = NOW() WHERE id = $1',
+        [actionId]
+      );
+
+      const message = await this.addMessageToSession(
+        sessionId,
+        llmResponse.response,
+        'assistant',
+        llmResponse.responseId,
+        'suggest_carts_result'
+      );
+
+      await this.saveSuggestedCarts(message.id, llmResponse.carts);
     } else {
       throw new InternalServerErrorException(
         `Action type ${result.rows[0].action_type} is not supported.`
