@@ -12,6 +12,7 @@ type ChatSession = {
   id: number;
   created_at: Date;
   user_id: number;
+  messages: ChatMessage[] | null;
 };
 
 type ChatMessage = {
@@ -84,7 +85,61 @@ export class ChatService {
       return null;
     }
 
-    return result.rows[0];
+    const populatedMessages = await this.populateMessages(
+      result.rows[0].messages ?? []
+    );
+
+    return {
+      ...result.rows[0],
+
+      messages:
+        populatedMessages.sort(
+          (a, b) =>
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        ) ?? [],
+    };
+  }
+
+  private populateMessages(messages: ChatMessage[]) {
+    return Promise.all(
+      messages.map(async message => {
+        if (message.message_type !== 'suggest_carts_result') {
+          return message;
+        }
+        const cartsResult = await this.postgresService.client.query<{
+          store_id: number;
+          store_name: string;
+          score: number;
+        }>(
+          `
+          SELECT c.id, c.store_id, s.name AS store_name, c.score, jSON_AGG(
+            JSON_BUILD_OBJECT(
+              'id', p.id,
+              'name', p.name,
+              'price', p.price,
+              'quantity', ci.quantity
+            )
+          ) AS products
+          FROM carts c
+          JOIN stores s ON c.store_id = s.id
+          JOIN cart_items ci ON c.id = ci.cart_id
+          JOIN products p ON ci.product_id = p.id
+          WHERE c.suggested_by_message_id = $1
+          GROUP BY c.store_id, s.name, c.score, c.id
+        `,
+          [message.id]
+        );
+
+        return {
+          ...message,
+          carts: cartsResult.rows.map(row => ({
+            store_id: row.store_id,
+            store_name: row.store_name,
+            score: row.score,
+          })),
+        };
+      })
+    );
   }
 
   async addUserMessage(sessionId: number, content: string) {
