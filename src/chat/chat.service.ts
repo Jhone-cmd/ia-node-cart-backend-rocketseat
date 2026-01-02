@@ -135,9 +135,16 @@ export class ChatService {
           return message;
         }
         const cartsResult = await this.postgresService.client.query<{
+          id: number;
           store_id: number;
           store_name: string;
           score: number;
+          products: {
+            id: number;
+            name: string;
+            price: number;
+            quantity: number;
+          }[];
         }>(
           `
           SELECT c.id, c.store_id, s.name AS store_name, c.score, jSON_AGG(
@@ -161,9 +168,14 @@ export class ChatService {
         return {
           ...message,
           carts: cartsResult.rows.map(row => ({
+            id: row.id,
             store_id: row.store_id,
             store_name: row.store_name,
             score: row.score,
+            total: row.products.reduce(
+              (sum, product) => sum + product.price * product.quantity,
+              0
+            ),
           })),
         };
       })

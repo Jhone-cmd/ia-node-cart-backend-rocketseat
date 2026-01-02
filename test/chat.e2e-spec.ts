@@ -20,7 +20,7 @@ describe('ChatController (e2e)', () => {
 
     postgresService = app.get<PostgresService>(PostgresService);
     await postgresService.client.query(
-      'TRUNCATE TABLE chat_sessions RESTART IDENTITY CASCADE;'
+      'TRUNCATE TABLE chat_sessions, chat_messages, chat_messages_actions RESTART IDENTITY CASCADE;'
     );
   });
 
