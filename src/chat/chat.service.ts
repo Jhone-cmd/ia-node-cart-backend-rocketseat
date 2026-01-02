@@ -49,6 +49,34 @@ export class ChatService {
     return result.rows[0];
   }
 
+  async getChatSessions(userId: number) {
+    const result = await this.postgresService.client.query<ChatSession>(
+      `SELECT cs.id, cs.user_id, cs.created_at,
+        COALESCE(
+          json_agg(
+            jsonb_build_object(
+              'id', cm.id,
+              'chat_session_id', cm.chat_session_id,
+              'content', cm.content,
+              'sender', cm.sender,
+              'openai_message_id', cm.openai_message_id,
+              'created_at', cm.created_at,
+              'message_type', cm.message_type
+            )
+          ) FILTER (WHERE cm.id IS NOT NULL),
+          '[]'
+        ) AS messages
+        FROM chat_sessions as cs
+        LEFT JOIN chat_messages as cm ON cs.id = cm.chat_session_id
+        WHERE user_id = $1
+        GROUP BY cs.id
+        ORDER BY cs.created_at DESC`,
+      [userId]
+    );
+
+    return result.rows;
+  }
+
   async getChatSession(sessionId: number) {
     const result = await this.postgresService.client.query<ChatSession>(
       `SELECT 
@@ -277,7 +305,6 @@ export class ChatService {
 
       const llmResponse = await this.llmService.suggestCarts(
         relevantProductsGroupedByStore.rows,
-
         result.rows[0].payload.input
       );
 
