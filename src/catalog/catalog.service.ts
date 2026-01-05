@@ -1,6 +1,6 @@
 import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { LlmService } from '../shared/llm.service';
+import { LlmService } from '../shared/llm/llm.service';
 import { PostgresService } from '../shared/postgres.service';
 
 type Product = {

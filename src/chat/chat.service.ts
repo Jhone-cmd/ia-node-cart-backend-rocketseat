@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { LlmService } from '../shared/llm.service';
+import { LlmService } from '../shared/llm/llm.service';
 import { PostgresService } from '../shared/postgres.service';
 
 type ChatSession = {
