@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { LlmService } from './llm.service';
+import { OpenAiLlmService } from './openai-llm.service';
 
 @Module({
   providers: [
@@ -9,7 +10,7 @@ import { LlmService } from './llm.service';
       useFactory: (configService: ConfigService) => {
         const provider = configService.get<string>('LLM_PROVIDER');
         if (provider === 'openai') {
-          return null;
+          return new OpenAiLlmService(configService);
         }
         throw new Error(`Unsupported LLM provider: ${provider}`);
       },
