@@ -23,6 +23,10 @@ export class CatalogService implements OnApplicationBootstrap {
     if (this.configService.get<string>('NODE_ENV') === 'test') {
       return;
     }
+
+    if (this.configService.get<string>('NODE_ENV') === 'development') {
+      return;
+    }
     const products = await this.postgresService.client.query<Product>(
       'SELECT id, name FROM products WHERE embedding IS NULL'
     );

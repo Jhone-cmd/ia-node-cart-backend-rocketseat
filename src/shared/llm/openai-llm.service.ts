@@ -248,10 +248,10 @@ export class OpenAiLlmService extends LlmService {
         input: message,
         text: { format: zodTextFormat(answerMessageSchema, 'answerSchema') },
       });
-      console.log(
-        'LlmService.answerMessage response:',
-        JSON.stringify(response.output_parsed, null, 2)
-      );
+      // console.log(
+      //   'LlmService.answerMessage response:',
+      //   JSON.stringify(response.output_parsed, null, 2)
+      // );
       if (!response.output_parsed) {
         console.error(
           'No parsed output in response:',
