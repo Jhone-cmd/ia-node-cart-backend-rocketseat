@@ -35,10 +35,12 @@
         "useMaxParams": "off"
       },
       "performance": {
-        "noNamespaceImport": "off"
+        "noNamespaceImport": "off",
+        "useTopLevelRegex": "off"
       },
       "correctness": {
-        "noUnusedVariables": "off"
+        "noUnusedVariables": "off",
+        "noUnusedFunctionParameters": "off"
       },
       "recommended": true,
       "complexity": {

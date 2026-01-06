@@ -15,7 +15,7 @@ import { OpenAiLlmService } from './openai-llm.service';
         }
 
         if (provider === 'gemini') {
-          return new GeminiLlmService();
+          return new GeminiLlmService(configService);
         }
         throw new Error(`Unsupported LLM provider: ${provider}`);
       },
