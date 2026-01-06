@@ -25,18 +25,18 @@ export class CatalogService implements OnApplicationBootstrap {
     }
 
     if (this.configService.get<string>('NODE_ENV') === 'development') {
+      const products = await this.postgresService.client.query<Product>(
+        'SELECT id, name FROM products WHERE embedding IS NULL'
+      );
+
+      if (products.rowCount === 0) {
+        console.log('No products to embed');
+        return;
+      }
+
+      await this.llmService.batchEmbedProducts(products.rows);
       return;
     }
-    const products = await this.postgresService.client.query<Product>(
-      'SELECT id, name FROM products WHERE embedding IS NULL'
-    );
-
-    if (products.rowCount === 0) {
-      console.log('No products to embed');
-      return;
-    }
-
-    await this.llmService.batchEmbedProducts(products.rows);
   }
 
   async handleEmbeddingWebhook(
