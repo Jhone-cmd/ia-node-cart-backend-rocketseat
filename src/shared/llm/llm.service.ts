@@ -36,6 +36,7 @@ export abstract class LlmService {
   abstract embedInput(input: string): Promise<{ embedding: number[] } | null>;
   abstract answerMessage(
     message: string,
-    previousMessageId: string | null
+    previousMessageId: string | null,
+    previousMessages: { content: string; role: string }[]
   ): Promise<(AnswerMessage & { responseId: string }) | null>;
 }
