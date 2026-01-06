@@ -9,7 +9,7 @@ export const answerMessageSchema = z.object({
       .object({
         input: z.string(),
       })
-      .nullable(),
+      .optional(),
   }),
 });
 

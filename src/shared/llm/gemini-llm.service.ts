@@ -53,7 +53,7 @@ export class GeminiLlmService extends LlmService {
 
       config: {
         systemInstruction: GeminiLlmService.SUGGEST_CARTS_PROMPT,
-        responseJsonSchema: suggestCartsSchema,
+        responseMimeType: 'application/json',
       },
     });
 
@@ -138,6 +138,7 @@ export class GeminiLlmService extends LlmService {
         console.error('No embeddings returned for input:', input);
         return null;
       }
+
       return { embedding: embeddings };
     } catch (error) {
       console.error('Error embedding input:', error);
@@ -163,7 +164,7 @@ export class GeminiLlmService extends LlmService {
         }),
       config: {
         systemInstruction: GeminiLlmService.Answer_Message_Prompt,
-        responseJsonSchema: answerMessageSchema,
+        responseMimeType: 'application/json',
       },
     });
     const jsonContent = this.extractJsonContent(response.text ?? '');

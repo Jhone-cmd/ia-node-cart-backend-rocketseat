@@ -308,7 +308,7 @@ export class ChatService {
         WHERE p.embedding <=> $1 < 0.65
         GROUP BY store_id
       `,
-          [embeddings.embedding]
+          [JSON.stringify(embeddings.embedding)]
         );
 
       console.dir(relevantProductsGroupedByStore.rows, { depth: null });
